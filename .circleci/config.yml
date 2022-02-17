@@ -169,6 +169,9 @@ workflows:
       - launch:
          name: "wandb launch tests"
          toxenv: "pylaunch,covercircle"
+      - kfp:
+         name: "kubeflow pipelines tests"
+         toxenv: "func-s_base-py37,func-covercircle"
       #
       # sharded unittests
       #
@@ -338,3 +341,55 @@ jobs:
         - save-tox-cache
         - save-test-results
             
+    kfp:
+        resource_class: xlarge
+        parameters:
+            image:
+              type: string
+            toxenv:
+              type: string
+            parallelism:
+              type: integer
+              default: 1
+            xdist:
+              type: integer
+              default: 1
+        docker:
+            - image: << parameters.image >>
+        working_directory: /mnt/ramdisk
+        steps:
+            - checkout
+            - run:
+                  name: Install system deps
+                  command: apt-get update && apt-get install -y libsndfile1 ffmpeg
+            - run:
+                  name: Install python dependencies
+                  command: |
+                      pip install tox==3.24.0
+            - restore-tox-cache
+            - run:
+                  name: Install kind
+                  command: |
+                      curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
+                      chmod +x ./kind
+                      export PATH="./kind:$PATH"
+            - run:
+                  name: Create cluster
+                  command: |
+                      kind create cluster
+            - run:
+                  name: Install KFP
+                  command: |
+                      export PIPELINE_VERSION=1.7.1
+                      kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/cluster-scoped-resources?ref=$PIPELINE_VERSION"
+                      kubectl wait --for condition=established --timeout=60s crd/applications.app.k8s.io
+                      kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/env/platform-agnostic-pns?ref=$PIPELINE_VERSION"
+                      kubectl wait --for condition=ready --timeout=300s pods -n kubeflow --all
+                      kubectl port-forward -n kubeflow svc/ml-pipeline-ui 8080:80 &
+            - run:
+                  name: Run tests
+                  command: |
+                      tox -v -e << parameters.toxenv >>
+                  no_output_timeout: 25m
+            - save-tox-cache
+            - save-test-results
