@@ -372,8 +372,7 @@ jobs:
                   name: Install docker
                   command: |
                       apt install -y docker.io
-                      echo exit 0 > /usr/sbin/policy-rc.d
-                      service docker start
+                      dockerd
             - run:
                   name: Install kind
                   command: |
