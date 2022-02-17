@@ -374,9 +374,6 @@ jobs:
                       curl -Lo ./kind/kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64 --create-dirs
                       chmod +x ./kind/kind
                       export PATH="./kind:$PATH"
-            - run:
-                  name: Create cluster
-                  command: |
                       kind create cluster
             - run:
                   name: Install KFP
