@@ -372,6 +372,9 @@ jobs:
                   name: Install docker
                   command: |
                       apt install -y docker.io
+                      groupadd docker
+                      usermod -aG docker $USER
+                      newgrp docker
                       dockerd
             - run:
                   name: Install kind
