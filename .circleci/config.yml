@@ -372,6 +372,7 @@ jobs:
                   name: Install docker
                   command: |
                       apt install -y docker.io
+                      service docker start
             - run:
                   name: Install kind
                   command: |
