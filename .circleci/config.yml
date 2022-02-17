@@ -371,7 +371,7 @@ jobs:
             - run:
                   name: Install docker
                   command: |
-                      apt install docker.io
+                      apt install -y docker.io
                       systemctl start docker
                       systemctl enable docker
             - run:
