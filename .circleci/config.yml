@@ -369,14 +369,11 @@ jobs:
                       pip install tox==3.24.0
             - restore-tox-cache
             - run:
-                  name: Install kind
+                  name: Install kind and create cluster
                   command: |
                       curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
                       chmod +x ./kind
                       export PATH="./kind:$PATH"
-            - run:
-                  name: Create cluster
-                  command: |
                       kind create cluster
             - run:
                   name: Install KFP
